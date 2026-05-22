@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="SpinRox — Real-time multiplayer spin wheel game. Join, spin, and win coins!" />
+    <title>SpinRox — Real-Time Spin Wheel Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+
+    <!-- ─── AUTH VIEW ─────────────────────────────────────────── -->
+    <div id="auth-view">
+      <div class="auth-brand">
+        <div class="brand-logo">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <circle cx="24" cy="24" r="22" stroke="#8b5cf6" stroke-width="2.5" fill="rgba(139,92,246,0.1)"/>
+            <path d="M24 6 L28 18 L40 18 L31 26 L34 38 L24 31 L14 38 L17 26 L8 18 L20 18 Z" fill="#f59e0b"/>
+          </svg>
+        </div>
+        <h1 class="brand-name">SpinRox</h1>
+        <p class="brand-tagline">Real-Time Multiplayer Spin Wheel</p>
+        <div class="brand-stats">
+          <div class="brand-stat"><span class="stat-num">7s</span><span class="stat-label">Per Elimination</span></div>
+          <div class="brand-stat"><span class="stat-num">70%</span><span class="stat-label">Winner Pool</span></div>
+          <div class="brand-stat"><span class="stat-num">∞</span><span class="stat-label">Players</span></div>
+        </div>
+        <div class="brand-orbs">
+          <div class="orb orb-1"></div>
+          <div class="orb orb-2"></div>
+          <div class="orb orb-3"></div>
+        </div>
+      </div>
+
+      <div class="auth-panel">
+        <div class="auth-tabs">
+          <button id="tab-login" class="auth-tab active" onclick="Auth.showTab('login')">Login</button>
+          <button id="tab-register" class="auth-tab" onclick="Auth.showTab('register')">Register</button>
+        </div>
+
+        <form id="login-form" class="auth-form" onsubmit="Auth.handleLogin(event)">
+          <div class="form-group">
+            <label class="form-label">Username</label>
+            <input id="login-username" type="text" class="form-input" placeholder="Enter your username" required autocomplete="username" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input id="login-password" type="password" class="form-input" placeholder="Enter your password" required autocomplete="current-password" />
+          </div>
+          <div id="login-error" class="auth-error hidden"></div>
+          <button type="submit" class="btn btn-primary btn-full" id="login-submit">
+            <span class="btn-text">Login</span>
+            <span class="btn-spinner hidden"></span>
+          </button>
+          <p class="auth-hint">Seed accounts: admin1, player1–4 / pw: <code>password123</code></p>
+        </form>
+
+        <form id="register-form" class="auth-form hidden" onsubmit="Auth.handleRegister(event)">
+          <div class="form-group">
+            <label class="form-label">Username</label>
+            <input id="reg-username" type="text" class="form-input" placeholder="Choose a username" required autocomplete="username" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input id="reg-password" type="password" class="form-input" placeholder="Choose a password" required autocomplete="new-password" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirm Password</label>
+            <input id="reg-confirm" type="password" class="form-input" placeholder="Confirm your password" required autocomplete="new-password" />
+          </div>
+          <div id="reg-error" class="auth-error hidden"></div>
+          <button type="submit" class="btn btn-primary btn-full" id="reg-submit">
+            <span class="btn-text">Create Account</span>
+            <span class="btn-spinner hidden"></span>
+          </button>
+          <p class="auth-hint">New accounts start with 1,000 coins 🪙</p>
+        </form>
+      </div>
+    </div>
+
+    <!-- ─── APP SHELL ──────────────────────────────────────────── -->
+    <div id="app-shell" class="hidden">
+
+      <!-- Sidebar -->
+      <aside id="sidebar">
+        <div class="sidebar-brand">
+          <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+            <circle cx="24" cy="24" r="22" stroke="#8b5cf6" stroke-width="2.5" fill="rgba(139,92,246,0.1)"/>
+            <path d="M24 6 L28 18 L40 18 L31 26 L34 38 L24 31 L14 38 L17 26 L8 18 L20 18 Z" fill="#f59e0b"/>
+          </svg>
+          <span>SpinRox</span>
+        </div>
+
+        <!-- User badge -->
+        <div class="user-badge">
+          <div id="sidebar-avatar" class="user-avatar">A</div>
+          <div class="user-info">
+            <div id="sidebar-username" class="user-name">—</div>
+            <div id="sidebar-role" class="user-role">user</div>
+          </div>
+        </div>
+
+        <!-- Balance chip -->
+        <div class="balance-chip">
+          <span class="coin-icon">🪙</span>
+          <span id="sidebar-balance" class="balance-amount">0</span>
+          <span class="balance-label">coins</span>
+        </div>
+
+        <!-- Nav -->
+        <nav class="sidebar-nav">
+          <a id="nav-lobby" class="nav-item active" onclick="Router.go('lobby')" href="#">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+            <span>Lobby</span>
+          </a>
+          <a id="nav-game" class="nav-item" onclick="Router.go('game')" href="#">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2 L12 12 L17 7"/></svg>
+            <span>Live Game</span>
+            <span id="game-live-badge" class="live-badge hidden">LIVE</span>
+          </a>
+          <a id="nav-profile" class="nav-item" onclick="Router.go('profile')" href="#">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            <span>Profile</span>
+          </a>
+          <a id="nav-admin" class="nav-item hidden" onclick="Router.go('admin')" href="#">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+            <span>Admin</span>
+          </a>
+        </nav>
+
+        <button class="logout-btn" onclick="Auth.logout()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Logout
+        </button>
+      </aside>
+
+      <!-- Main Content -->
+      <main id="main-content">
+
+        <!-- Mobile Top Bar -->
+        <div class="mobile-topbar">
+          <div class="sidebar-brand">
+            <svg width="24" height="24" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="22" stroke="#8b5cf6" stroke-width="2.5" fill="rgba(139,92,246,0.1)"/><path d="M24 6 L28 18 L40 18 L31 26 L34 38 L24 31 L14 38 L17 26 L8 18 L20 18 Z" fill="#f59e0b"/></svg>
+            <span>SpinRox</span>
+          </div>
+          <div class="topbar-right">
+            <span class="coin-icon">🪙</span>
+            <span id="mobile-balance" class="balance-amount">0</span>
+          </div>
+        </div>
+
+        <!-- LOBBY PANEL -->
+        <div id="panel-lobby" class="panel">
+          <div class="panel-header">
+            <h2 class="panel-title">🎡 Game Lobby</h2>
+            <button id="lobby-refresh-btn" class="btn btn-ghost btn-sm" onclick="Lobby.refresh()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.5 15a9 9 0 11-2.7-7.5L23 10"/></svg>
+              Refresh
+            </button>
+          </div>
+
+          <!-- Admin: create wheel -->
+          <div id="admin-create-card" class="card hidden">
+            <div class="card-header">
+              <h3>⚡ Create New Wheel</h3>
+              <span class="badge badge-purple">Admin</span>
+            </div>
+            <div class="create-wheel-form">
+              <div class="form-group">
+                <label class="form-label">Entry Fee (coins)</label>
+                <input id="create-fee-input" type="number" class="form-input" min="1" max="10000" value="100" placeholder="100" />
+              </div>
+              <button id="create-wheel-btn" class="btn btn-primary" onclick="Lobby.createWheel()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                Create Wheel
+              </button>
+            </div>
+          </div>
+
+          <!-- Active Wheel Card -->
+          <div id="active-wheel-card" class="card hidden">
+            <div class="card-header">
+              <div class="wheel-title-row">
+                <h3>🎯 Active Wheel</h3>
+                <div class="wheel-badges">
+                  <span id="wheel-status-badge" class="badge badge-green">WAITING</span>
+                  <span class="badge badge-gold">Fee: <span id="wheel-fee-display">—</span> 🪙</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="wheel-pools">
+              <div class="pool-item pool-winner">
+                <div class="pool-label">🏆 Winner Pool</div>
+                <div id="pool-winner" class="pool-amount">0</div>
+              </div>
+              <div class="pool-item pool-admin">
+                <div class="pool-label">👑 Admin Pool</div>
+                <div id="pool-admin" class="pool-amount">0</div>
+              </div>
+              <div class="pool-item pool-app">
+                <div class="pool-label">🏦 App Pool</div>
+                <div id="pool-app" class="pool-amount">0</div>
+              </div>
+            </div>
+
+            <!-- Countdown timer -->
+            <div id="wheel-timer" class="wheel-timer hidden">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Auto-starts in <span id="countdown-display" class="countdown">3:00</span>
+            </div>
+
+            <!-- Participants -->
+            <div class="participants-section">
+              <div class="participants-header">
+                <span>👥 Players <span id="participant-count" class="count-badge">0</span></span>
+                <span id="min-players-hint" class="hint-text">Min. 3 to start</span>
+              </div>
+              <div id="participants-list" class="participants-list"></div>
+            </div>
+
+            <!-- Actions -->
+            <div class="wheel-actions">
+              <button id="join-wheel-btn" class="btn btn-primary btn-lg" onclick="Lobby.joinWheel()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                Join Wheel
+              </button>
+              <button id="start-wheel-btn" class="btn btn-gold btn-lg hidden" onclick="Lobby.manualStart()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Start Game Now
+              </button>
+              <button id="watch-game-btn" class="btn btn-ghost btn-lg hidden" onclick="Router.go('game')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                Watch Live
+              </button>
+            </div>
+          </div>
+
+          <!-- No Wheel State -->
+          <div id="no-wheel-card" class="card card-empty">
+            <div class="empty-state">
+              <div class="empty-icon">🎡</div>
+              <h3>No Active Wheel</h3>
+              <p>No spin wheel is active right now. Check back soon or ask an admin to create one.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- GAME PANEL -->
+        <div id="panel-game" class="panel hidden">
+          <div class="panel-header">
+            <h2 class="panel-title">🎰 Live Game</h2>
+            <div id="game-status-bar" class="game-status-bar">
+              <span id="players-remaining" class="remaining-badge">— players remaining</span>
+            </div>
+          </div>
+
+          <div class="game-layout">
+            <!-- Canvas + Wheel -->
+            <div class="wheel-container">
+              <div class="canvas-wrap">
+                <canvas id="wheel-canvas" width="520" height="520"></canvas>
+                <div id="spin-label" class="spin-label hidden"></div>
+              </div>
+              <div id="game-state-msg" class="game-state-msg">Waiting for game to start…</div>
+            </div>
+
+            <!-- Sidebar: log + eliminated -->
+            <div class="game-sidebar">
+              <div class="card">
+                <div class="card-header"><h3>📋 Elimination Log</h3></div>
+                <div id="elimination-log" class="elimination-log">
+                  <div class="log-empty">Game hasn't started yet</div>
+                </div>
+              </div>
+              <div class="card" id="eliminated-card">
+                <div class="card-header"><h3>💀 Eliminated</h3></div>
+                <div id="eliminated-list" class="eliminated-list"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Winner Overlay -->
+          <div id="winner-overlay" class="overlay hidden">
+            <div class="overlay-content winner-content">
+              <div class="confetti-burst">🎉</div>
+              <h2>Winner!</h2>
+              <div id="winner-name" class="winner-name">—</div>
+              <div id="winner-prize" class="winner-prize"></div>
+              <div class="winner-sub">Returning to lobby in <span id="winner-countdown">5</span>s…</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PROFILE PANEL -->
+        <div id="panel-profile" class="panel hidden">
+          <div class="panel-header">
+            <h2 class="panel-title">👤 My Profile</h2>
+          </div>
+
+          <div class="profile-layout">
+            <div class="profile-hero card">
+              <div id="profile-avatar-lg" class="profile-avatar-lg">A</div>
+              <div class="profile-hero-info">
+                <div id="profile-username" class="profile-hero-name">—</div>
+                <div id="profile-role-badge" class="badge badge-purple">user</div>
+              </div>
+              <div class="profile-balance">
+                <span class="coin-icon">🪙</span>
+                <span id="profile-balance" class="profile-balance-num">0</span>
+                <span class="profile-balance-label">coins</span>
+              </div>
+            </div>
+
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-icon">🎮</div>
+                <div id="stat-games" class="stat-value">0</div>
+                <div class="stat-name">Games Played</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon">🏆</div>
+                <div id="stat-wins" class="stat-value">0</div>
+                <div class="stat-name">Wins</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon">💸</div>
+                <div id="stat-spent" class="stat-value">0</div>
+                <div class="stat-name">Coins Spent</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                <div id="stat-earned" class="stat-value">0</div>
+                <div class="stat-name">Coins Earned</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header"><h3>📜 Transaction History</h3></div>
+              <div class="table-wrap">
+                <table class="data-table" id="tx-table">
+                  <thead>
+                    <tr>
+                      <th>Type</th>
+                      <th>Amount</th>
+                      <th>Balance After</th>
+                      <th>Date</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tx-tbody"></tbody>
+                </table>
+                <div id="tx-empty" class="table-empty hidden">No transactions yet.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ADMIN PANEL -->
+        <div id="panel-admin" class="panel hidden">
+          <div class="panel-header">
+            <h2 class="panel-title">⚡ Admin Panel</h2>
+            <span class="badge badge-purple">Admin Only</span>
+          </div>
+
+          <div class="admin-grid">
+            <!-- Config -->
+            <div class="card">
+              <div class="card-header"><h3>⚙️ Coin Split Config</h3></div>
+              <div class="config-form">
+                <div class="config-row">
+                  <label class="form-label">🏆 Winner %</label>
+                  <input id="config-winner" type="number" class="form-input config-input" min="0" max="100" value="70" oninput="Admin.updateConfigSum()" />
+                </div>
+                <div class="config-row">
+                  <label class="form-label">👑 Admin %</label>
+                  <input id="config-admin" type="number" class="form-input config-input" min="0" max="100" value="20" oninput="Admin.updateConfigSum()" />
+                </div>
+                <div class="config-row">
+                  <label class="form-label">🏦 App %</label>
+                  <input id="config-app" type="number" class="form-input config-input" min="0" max="100" value="10" oninput="Admin.updateConfigSum()" />
+                </div>
+                <div id="config-sum-row" class="config-sum-row">
+                  Total: <span id="config-sum" class="config-sum-val">100</span>% <span id="config-sum-status">✅</span>
+                </div>
+                <button id="save-config-btn" class="btn btn-primary" onclick="Admin.saveConfig()">Save Config</button>
+              </div>
+            </div>
+
+            <!-- Active Wheel Management -->
+            <div class="card" id="admin-wheel-card">
+              <div class="card-header"><h3>🎡 Active Wheel</h3></div>
+              <div id="admin-wheel-info">
+                <div class="empty-state-sm">No active wheel right now.</div>
+              </div>
+            </div>
+
+            <!-- Users -->
+            <div class="card admin-users-card">
+              <div class="card-header">
+                <h3>👥 All Users</h3>
+                <button class="btn btn-ghost btn-sm" onclick="Admin.loadUsers()">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.5 15a9 9 0 11-2.7-7.5L23 10"/></svg>
+                  Refresh
+                </button>
+              </div>
+              <div class="table-wrap">
+                <table class="data-table">
+                  <thead>
+                    <tr><th>User</th><th>Role</th><th>Balance</th><th>Top-Up</th></tr>
+                  </thead>
+                  <tbody id="admin-users-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </main>
+
+      <!-- Mobile bottom nav -->
+      <nav class="mobile-nav">
+        <a class="mobile-nav-item active" onclick="Router.go('lobby')" href="#" id="mobile-nav-lobby">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+          <span>Lobby</span>
+        </a>
+        <a class="mobile-nav-item" onclick="Router.go('game')" href="#" id="mobile-nav-game">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2 L12 12 L17 7"/></svg>
+          <span>Game</span>
+        </a>
+        <a class="mobile-nav-item" onclick="Router.go('profile')" href="#" id="mobile-nav-profile">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          <span>Profile</span>
+        </a>
+        <a class="mobile-nav-item hidden" onclick="Router.go('admin')" href="#" id="mobile-nav-admin">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+          <span>Admin</span>
+        </a>
+      </nav>
+
+    </div><!-- /app-shell -->
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Socket.IO client (auto-served by server) -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>
