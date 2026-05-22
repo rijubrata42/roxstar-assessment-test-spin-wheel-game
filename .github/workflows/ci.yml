@@ -1,0 +1,39 @@
+name: CI
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        branches:
+            - main
+
+jobs:
+    check_formatting:
+        uses: ./.github/workflows/check_formatting.yml
+
+    # lint:
+    #     needs: check_formatting
+    #     uses: ./.github/workflows/lint.yml
+
+    # type_check:
+    #     needs: lint
+    #     uses: ./.github/workflows/type_check.yml
+
+    # unit_test:
+    #     needs: type_check
+    #     uses: ./.github/workflows/unit_test.yml
+    #     secrets: inherit
+    #     permissions:
+    #         id-token: write
+    #         pages: write
+
+    build_and_push_docker_image_to_ghcr:
+        needs: unit_test
+        uses: ./.github/workflows/build_and_push_docker_image_to_ghcr.yml
+        permissions:
+            packages: write
+            contents: read
+            attestations: write
+            deployments: write
+            id-token: write

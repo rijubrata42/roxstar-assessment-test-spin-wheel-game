@@ -1,0 +1,43 @@
+name: Build and push docker image to GHCR (Github Container Registry)
+
+on:
+    workflow_call:
+
+jobs:
+    build_and_push_docker_image_to_ghcr:
+        name: Build and push docker image to GHCR
+        runs-on: ubuntu-latest
+        permissions:
+            packages: write
+            contents: read
+            attestations: write
+            deployments: write
+            id-token: write
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v6
+
+            - name: List files
+              run: ls -lah
+
+            - name: Login to GHCR
+              uses: docker/login-action@v3
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Build and push docker image to GHCR
+              uses: docker/build-push-action@v6
+              with:
+                  push: true
+                  tags: ghcr.io/${{ github.repository }}:latest
+                  build-args: |
+                      BUILDKIT_CONTEXT_KEEP_GIT_DIR=1
+              id: docker_build_push
+
+            - name: Echo image ID, digest
+              run: |
+                  echo Image ID: ${{ steps.docker_build_push.outputs.imageid }}
+                  echo Digest: ${{ steps.docker_build_push.outputs.digest }}
