@@ -29,7 +29,7 @@ jobs:
     #         pages: write
 
     build_and_push_docker_image_to_ghcr:
-        needs: unit_test
+        needs: check_formatting
         uses: ./.github/workflows/build_and_push_docker_image_to_ghcr.yml
         permissions:
             packages: write
