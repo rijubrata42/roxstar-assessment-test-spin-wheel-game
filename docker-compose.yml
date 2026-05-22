@@ -1,0 +1,22 @@
+version: "3.9"
+
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: spinrox-app
+        restart: unless-stopped
+        ports:
+            - "${SERVER_PORT:-3000}:3000"
+        environment:
+            # Pass through from your .env file or set here
+            DATABASE_URL: ${DATABASE_URL}
+            JWT_SECRET: ${JWT_SECRET}
+            SERVER_PORT: 3000
+        healthcheck:
+            test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+            interval: 30s
+            timeout: 5s
+            retries: 3
+            start_period: 10s

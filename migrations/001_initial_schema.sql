@@ -29,7 +29,7 @@ CREATE TABLE participants (
   elimination_order INTEGER,
   joined_at TIMESTAMP DEFAULT NOW(),
   eliminated_at TIMESTAMP,
-  UNIQUE(user_id, spin_wheel_id)  -- prevents double joining
+  UNIQUE(user_id, spin_wheel_id) 
 );
 
 CREATE TABLE transactions (
