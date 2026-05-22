@@ -154,4 +154,31 @@ async function getWheelStatus(wheelId) {
     };
 }
 
-module.exports = { createWheel, joinWheel, abortAndRefund, getWheelStatus };
+// ─── GET ACTIVE WHEEL ───
+async function getActiveWheel() {
+    const wheelResult = await pool.query(
+        `SELECT * FROM spin_wheels WHERE status IN ('waiting', 'running') ORDER BY created_at DESC LIMIT 1`,
+    );
+
+    if (wheelResult.rows.length === 0) {
+        return null;
+    }
+
+    const wheel = wheelResult.rows[0];
+    const participants = await pool.query(
+        `SELECT p.id, p.user_id, p.is_eliminated, p.joined_at, u.username
+         FROM participants p
+         JOIN users u ON p.user_id = u.id
+         WHERE p.spin_wheel_id = $1
+         ORDER BY p.joined_at ASC`,
+        [wheel.id],
+    );
+
+    return {
+        wheel,
+        participants: participants.rows,
+        participant_count: participants.rows.length,
+    };
+}
+
+module.exports = { createWheel, joinWheel, abortAndRefund, getWheelStatus, getActiveWheel };
