@@ -64,9 +64,7 @@ const updateConfig = async (req, res) => {
 // ─── GET ALL USERS (admin convenience) ───
 const getAllUsers = async (req, res) => {
     try {
-        const result = await pool.query(
-            "SELECT id, username, role, coin_balance, created_at FROM users ORDER BY id",
-        );
+        const result = await pool.query("SELECT id, username, role, coin_balance, created_at FROM users ORDER BY id");
         res.json({ users: result.rows });
     } catch (error) {
         console.error("Get users error:", error);

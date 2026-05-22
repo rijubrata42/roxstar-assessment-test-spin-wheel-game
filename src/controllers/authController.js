@@ -13,7 +13,7 @@ const register = async (req, res) => {
     }
 
     // Only allow 'user' role on self-registration; 'admin' must be set by DB/seed
-    const assignedRole = role === "admin" ? "user" : (role || "user");
+    const assignedRole = role === "admin" ? "user" : role || "user";
 
     try {
         const existing = await pool.query("SELECT id FROM users WHERE username = $1", [username]);
