@@ -19,7 +19,6 @@ async function runMigrations() {
             await pool.query(sql);
             console.log(`✅ ${file} completed`);
         } catch (err) {
-            // Many errors here are "already exists" — log and continue
             console.warn(`⚠️  ${file} warning: ${err.message}`);
         }
     }

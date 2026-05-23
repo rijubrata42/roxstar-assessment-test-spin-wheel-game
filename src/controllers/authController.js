@@ -4,7 +4,6 @@ const pool = require("../../config/database");
 
 const SALT_ROUNDS = 10;
 
-// ─── REGISTER ───
 const register = async (req, res) => {
     const { username, password, role } = req.body;
 
@@ -12,7 +11,6 @@ const register = async (req, res) => {
         return res.status(400).json({ error: "username and password are required" });
     }
 
-    // Only allow 'user' role on self-registration; 'admin' must be set by DB/seed
     const assignedRole = role === "admin" ? "user" : role || "user";
 
     try {
@@ -42,7 +40,6 @@ const register = async (req, res) => {
     }
 };
 
-// ─── LOGIN ───
 const login = async (req, res) => {
     const { username, password } = req.body;
 

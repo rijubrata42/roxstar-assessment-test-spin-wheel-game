@@ -16,7 +16,6 @@ async function processWinner(wheelId) {
         const wheelResult = await client.query("SELECT * FROM spin_wheels WHERE id = $1 FOR UPDATE", [wheelId]);
         const wheel = wheelResult.rows[0];
 
-        // Find the winner (last non-eliminated participant)
         const winnerResult = await client.query(
             `SELECT p.user_id, u.username FROM participants p
        JOIN users u ON p.user_id = u.id
@@ -25,7 +24,6 @@ async function processWinner(wheelId) {
         );
         const winner = winnerResult.rows[0];
 
-        // Credit winner
         await client.query("UPDATE users SET coin_balance = coin_balance + $1 WHERE id = $2", [
             wheel.winner_pool,
             winner.user_id,
@@ -37,7 +35,6 @@ async function processWinner(wheelId) {
             [winner.user_id, wheelId, wheel.winner_pool, winnerBal.rows[0].coin_balance],
         );
 
-        // Credit admin
         await client.query("UPDATE users SET coin_balance = coin_balance + $1 WHERE id = $2", [
             wheel.admin_pool,
             wheel.created_by,
@@ -49,7 +46,6 @@ async function processWinner(wheelId) {
             [wheel.created_by, wheelId, wheel.admin_pool, adminBal.rows[0].coin_balance],
         );
 
-        // Mark wheel as completed
         await client.query(
             `UPDATE spin_wheels
        SET status = 'completed', winner_id = $1, completed_at = NOW()
@@ -68,10 +64,8 @@ async function processWinner(wheelId) {
 }
 
 async function startGame(wheelId, io) {
-    // Update status to running
     await pool.query("UPDATE spin_wheels SET status = 'running', started_at = NOW() WHERE id = $1", [wheelId]);
 
-    // Get participants
     const participantsResult = await pool.query(
         `SELECT p.*, u.username FROM participants p
      JOIN users u ON p.user_id = u.id
@@ -83,20 +77,17 @@ async function startGame(wheelId, io) {
     const eliminationOrder = shuffleArray([...participants]);
     const toEliminate = eliminationOrder.slice(0, -1);
 
-    // Broadcast game start
     io.to(`wheel-${wheelId}`).emit("game-started", {
         wheelId,
         participantCount: participants.length,
         participants: participants.map((p) => p.username),
     });
 
-    // Eliminate one every 7 seconds
     for (let i = 0; i < toEliminate.length; i++) {
         await new Promise((resolve) => setTimeout(resolve, 7000));
 
         const eliminated = toEliminate[i];
 
-        // Update database
         await pool.query(
             `UPDATE participants
        SET is_eliminated = true, elimination_order = $1, eliminated_at = NOW()
@@ -104,7 +95,6 @@ async function startGame(wheelId, io) {
             [i + 1, eliminated.id],
         );
 
-        // Broadcast to everyone watching
         io.to(`wheel-${wheelId}`).emit("player-eliminated", {
             username: eliminated.username,
             eliminationNumber: i + 1,
@@ -112,7 +102,6 @@ async function startGame(wheelId, io) {
         });
     }
 
-    // Process winner
     const winner = await processWinner(wheelId);
 
     io.to(`wheel-${wheelId}`).emit("game-ended", {

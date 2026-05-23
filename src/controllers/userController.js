@@ -1,6 +1,5 @@
 const pool = require("../../config/database");
 
-// ─── GET MY PROFILE ───
 const getMe = async (req, res) => {
     try {
         const result = await pool.query(
@@ -14,7 +13,6 @@ const getMe = async (req, res) => {
     }
 };
 
-// ─── GET MY TRANSACTIONS ───
 const getMyTransactions = async (req, res) => {
     try {
         const result = await pool.query(
@@ -34,7 +32,6 @@ const getMyTransactions = async (req, res) => {
     }
 };
 
-// ─── GET MY GAME HISTORY ───
 const getMyGameHistory = async (req, res) => {
     try {
         const result = await pool.query(

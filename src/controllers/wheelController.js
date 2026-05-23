@@ -9,7 +9,6 @@ const createWheel = async (req, res) => {
 
         const io = req.app.get("io");
 
-        // Start the 3-minute auto-start timer
         setTimeout(
             async () => {
                 try {
@@ -64,7 +63,6 @@ const manualStart = async (req, res) => {
         }
 
         const io = req.app.get("io");
-        // Start in background (don't await — it takes minutes)
         startGame(wheelId, io).catch((err) => console.error("Game error:", err));
 
         res.json({ message: "Wheel started" });

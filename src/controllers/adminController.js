@@ -1,6 +1,5 @@
 const pool = require("../../config/database");
 
-// ─── GET CONFIG ───
 const getConfig = async (req, res) => {
     try {
         const result = await pool.query("SELECT key, value FROM config ORDER BY key");
@@ -15,11 +14,9 @@ const getConfig = async (req, res) => {
     }
 };
 
-// ─── UPDATE CONFIG ───
 const updateConfig = async (req, res) => {
     const { winner_percentage, admin_percentage, app_percentage } = req.body;
 
-    // Validate all three are provided
     if (winner_percentage === undefined || admin_percentage === undefined || app_percentage === undefined) {
         return res.status(400).json({ error: "All three percentages (winner, admin, app) must be provided" });
     }
@@ -61,7 +58,6 @@ const updateConfig = async (req, res) => {
     }
 };
 
-// ─── GET ALL USERS (admin convenience) ───
 const getAllUsers = async (req, res) => {
     try {
         const result = await pool.query("SELECT id, username, role, coin_balance, created_at FROM users ORDER BY id");
@@ -72,7 +68,6 @@ const getAllUsers = async (req, res) => {
     }
 };
 
-// ─── TOPUP USER COINS (admin only) ───
 const topupUser = async (req, res) => {
     const { userId } = req.params;
     const { amount } = req.body;
